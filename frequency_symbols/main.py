@@ -1,7 +1,7 @@
 from skimage.measure import label, regionprops
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage.morphology import erosion
+
 
 def circularity_std(area, perimeter):
     r = perimeter / (2 * np.pi) + 0.5
