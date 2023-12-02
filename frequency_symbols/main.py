@@ -1,7 +1,7 @@
 from skimage.measure import label, regionprops
 import numpy as np
 import matplotlib.pyplot as plt
-
+from skimage.morphology import erosion
 
 def circularity_std(area, perimeter):
     r = perimeter / (2 * np.pi) + 0.5
@@ -15,13 +15,15 @@ def has_vline_first_column(arr):
     res = np.all(arr[:, 0], axis=0)
     return res
 
+def has_hline(arr):
+    return 1. in arr.mean(1)
 
 image = plt.imread('symbols.png').mean(2) > 0
 labeled = label(image)
 
-
 def recognize(prop):
     euler_number = prop.euler_number
+
     if euler_number == -1:
         if has_vline_first_column(prop.image):
             return 'B'
@@ -30,21 +32,24 @@ def recognize(prop):
         y, x = prop.centroid_local
         y /= prop.image.shape[0]
         x /= prop.image.shape[1]
+        
         if euler_number == 0 and has_vline_first_column(prop.image):
             if (circularity_std(prop.area, prop.perimeter)) <= 0.205:
                 return 'D'
             return 'P'
-        
-        if np.isclose(x, y, 0.07):
+        elif has_hline(prop.image):
+            return '*'
+        elif np.isclose(x, y, 0.07):
             if prop.image[prop.image.shape[0] // 2][prop.image.shape[1] // 2] == 0:
                 return '0'
-        if prop.image[prop.image.shape[0] - 1, 0]:
+        elif prop.image[prop.image.shape[0] - 1, 0]:
             return 'A'
     else:
         if prop.image.mean() == 1.0:
             return '-'
         else:
             mean_arr = prop.image.mean(0)
+            
             if mean_arr[mean_arr == 1].shape[0] > 1:
                 return '1'
             else:
@@ -57,21 +62,23 @@ def recognize(prop):
 
                 if tmp_euler == -3:
                     return 'X'
-                elif tmp_euler == -1 and prop.image[0, prop.image.shape[1] - 1] and prop.image[prop.image.shape[0] - 1, 0]: 
+                elif tmp_euler == -1: 
                     return '/'
-                else:
-                    if prop.eccentricity > 0.5 and prop.image[0][0]:
-                      return 'W'
-    
-    return '*'
+                elif prop.eccentricity > 0.5:
+                    return 'W'
+                return '*'
+    return 'undefined'
 
 props = regionprops(labeled)
 result = {}
 
 for prop in props:
     symbol = recognize(prop)
+    
     if symbol not in result:
         result[symbol] = 0
     result[symbol] += 1
 
 print(result)
+
+print(f"percentage of character recognition: {(sum(result.values()) - result.get('undefined', 0)) / sum(result.values()) * 100}")
