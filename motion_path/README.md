@@ -1,1 +1,1 @@
-![image](https://github.com/Alexander-Domnenko/homework_computer_vision/assets/91257943/21a8c088-626e-4e83-b6dc-e675f467809e)
+![image](https://github.com/Alexander-Domnenko/homework_computer_vision/assets/91257943/4a2ed4e1-1918-498a-ab0e-6e292e412a74)
